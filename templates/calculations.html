@@ -1,0 +1,119 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+<h1 style="color:red;">THIS IS CALCULATIONS PAGE</h1>
+
+<h1>My Calculations</h1>
+
+<div id="results"></div>
+
+<hr>
+
+<h2>Create New Calculation</h2>
+
+<form id="create-form">
+  <label>Operation:</label>
+  <select id="operation">
+    <option value="">--Select--</option>
+    <option value="add">Add</option>
+    <option value="subtract">Subtract</option>
+    <option value="multiply">Multiply</option>
+    <option value="divide">Divide</option>
+  </select>
+
+  <input type="number" id="a" placeholder="A">
+  <input type="number" id="b" placeholder="B">
+
+  <button type="submit">Create</button>
+</form>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const resultsDiv = document.getElementById("results");
+    const token = localStorage.getItem("token");
+
+    console.log("Token:", token);
+
+    // If no token → block page
+    if (!token) {
+        resultsDiv.innerHTML = "<h3 style='color:red;'>Not authenticated. Please login.</h3>";
+        return;
+    }
+
+    // -----------------------------
+    // LOAD CALCULATIONS
+    // -----------------------------
+    async function loadCalculations() {
+
+        console.log("Fetching calculations...");
+
+        const response = await fetch("/calculations/", {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const data = await response.json();
+
+        console.log("Load response:", data);
+
+        if (!response.ok) {
+            resultsDiv.innerHTML = `<p style='color:red;'>${data.detail || "Not authenticated"}</p>`;
+            return;
+        }
+
+        if (data.length === 0) {
+            resultsDiv.innerHTML = "<p>No calculations yet!</p>";
+            return;
+        }
+
+        let html = "<ul>";
+        data.forEach(item => {
+            html += `<li>${item.operation} (${item.a}, ${item.b}) = ${item.result}</li>`;
+        });
+        html += "</ul>";
+
+        resultsDiv.innerHTML = html;
+    }
+
+    loadCalculations();
+
+    // -----------------------------
+    // CREATE NEW CALCULATION
+    // -----------------------------
+    document.getElementById("create-form").onsubmit = async function (e) {
+        e.preventDefault();
+
+        const operation = document.getElementById("operation").value;
+        const a = parseFloat(document.getElementById("a").value);
+        const b = parseFloat(document.getElementById("b").value);
+
+        console.log("Creating:", { operation, a, b });
+
+        const response = await fetch("/calculations/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify({ operation, a, b })
+        });
+
+        const data = await response.json();
+        console.log("Create response:", data);
+
+        if (!response.ok) {
+            alert(data.detail || "Failed to create calculation");
+            return;
+        }
+
+        alert("Calculation created!");
+        loadCalculations();
+    };
+
+});
+</script>
+
+{% endblock %}

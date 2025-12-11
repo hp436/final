@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        body { font-family: Arial; text-align: center; margin-top: 40px; }
+        input { padding: 8px; margin: 6px; width: 250px; }
+        button { padding: 10px 20px; cursor: pointer; margin-top: 10px; }
+        #message { margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h1>Login</h1>
+
+<input id="username" type="text" placeholder="Username"><br>
+<input id="password" type="password" placeholder="Password"><br>
+
+<button id="loginBtn">Login</button>
+
+<div id="message"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    console.log("Login page loaded.");
+
+    const loginBtn = document.getElementById("loginBtn");
+    console.log("loginBtn =", loginBtn);  // Debug
+
+    loginBtn.onclick = async function () {
+        const username = document.getElementById("username").value;
+        const pass = document.getElementById("password").value;
+
+        const msg = document.getElementById("message");
+
+        try {
+            const response = await fetch("/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: username,
+                    password: pass
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem("token", data.access_token);
+                msg.innerText = "Login successful";
+
+                setTimeout(() => {
+                    window.location.href = "/calculations";
+                }, 500);
+
+            } else {
+                msg.innerText = data.detail || "Invalid username or password";
+            }
+
+        } catch (err) {
+            msg.innerText = err.message;
+        }
+    };
+
+});
+</script>
+
+</body>
+</html>

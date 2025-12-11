@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Hello World & Calculator Demo</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        nav {
+            margin-bottom: 30px;
+        }
+
+        nav a {
+            margin: 0 15px;
+            font-size: 18px;
+            text-decoration: none;
+            color: #0077cc;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .calculator {
+            margin-top: 20px;
+        }
+
+        input {
+            margin: 5px;
+            padding: 8px;
+            width: 180px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 6px 12px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .result {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Hello World</h1>
+
+    <nav>
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+        <a href="/calculations/page">Calculations</a>
+    </nav>
+
+    {% block content %}
+    <div class="calculator">
+        <h2>Calculator</h2>
+
+        <input type="number" id="a" placeholder="First number">
+        <input type="number" id="b" placeholder="Second number"><br>
+
+        <button onclick="calculate('add')">Add</button>
+        <button onclick="calculate('subtract')">Subtract</button>
+        <button onclick="calculate('multiply')">Multiply</button>
+        <button onclick="calculate('divide')">Divide</button>
+        <button onclick="calculate('power')">Power (a^b)</button>
+
+        <div class="result" id="result"></div>
+    </div>
+    {% endblock %}
+
+    <script>
+        async function calculate(operation) {
+            const a = parseFloat(document.getElementById('a').value);
+            const b = parseFloat(document.getElementById('b').value);
+            const resultElement = document.getElementById('result');
+
+            try {
+                const response = await fetch('/calculations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation, a, b })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultElement.innerText = 'Result: ' + data.result;
+                } else {
+                    // FIXED: handles divide-by-zero and matches E2E expected exact string
+                    const errorMessage = data.detail || data.error || "Unknown error";
+                    resultElement.innerText = 'Error: ' + errorMessage;
+                }
+
+            } catch (err) {
+                resultElement.innerText = 'Error: ' + err.message;
+            }
+        }
+    </script>
+
+</body>
+</html>

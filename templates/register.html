@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <style>
+        body { font-family: Arial; text-align: center; margin-top: 40px; }
+        input { padding: 8px; margin: 6px; width: 250px; }
+        button { padding: 10px 20px; cursor: pointer; margin-top: 10px; }
+        #message { margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h1>Create an Account</h1>
+
+<input id="first" type="text" placeholder="First Name"><br>
+<input id="last" type="text" placeholder="Last Name"><br>
+<input id="email" type="email" placeholder="Email"><br>
+<input id="password" type="password" placeholder="Password"><br>
+<input id="confirm" type="password" placeholder="Confirm Password"><br>
+
+<button id="registerBtn">Register</button>
+
+<div id="message"></div>
+
+<script>
+    document.getElementById("registerBtn").onclick = async function () {
+
+        const first = document.getElementById("first").value;
+        const last = document.getElementById("last").value;
+        const email = document.getElementById("email").value;
+        const pass = document.getElementById("password").value;
+        const confirm = document.getElementById("confirm").value;
+
+        const msg = document.getElementById("message");
+
+        if (!first || !last || !email || !pass || !confirm) {
+            msg.innerText = "Please fill in all fields.";
+            return;
+        }
+
+        if (pass !== confirm) {
+            msg.innerText = "Passwords do not match.";
+            return;
+        }
+
+        try {
+            const response = await fetch("/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    first_name: first,
+                    last_name: last,
+                    username: email.split("@")[0],
+                    email: email,
+                    password: pass,
+                    confirm_password: confirm
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                msg.innerText = "Registration successful";
+            } else {
+                msg.innerText = data.detail || "Registration failed";
+            }
+
+        } catch (err) {
+            msg.innerText = err.message;
+        }
+    };
+</script>
+
+</body>
+</html>
